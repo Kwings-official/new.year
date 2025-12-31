@@ -18,19 +18,19 @@
         #container { border: 1px solid #333; padding: 20px; background: rgba(0,0,0,0.9); box-shadow: 0 0 20px rgba(0,255,157,0.1); max-width: 90%; width: 400px; text-align: center; position: relative; }
 
         h1 { font-size: 1.2rem; border-bottom: 1px solid #333; padding-bottom: 10px; margin-top: 0; }
-        .btn { background: transparent; border: 1px solid var(--primary); color: var(--primary); padding: 10px 20px; cursor: pointer; font-family: inherit; margin-top: 20px; transition: 0.3s; }
+        
+        /* Button is hidden by default now */
+        .btn { display: none; background: transparent; border: 1px solid var(--primary); color: var(--primary); padding: 10px 20px; cursor: pointer; font-family: inherit; margin-top: 20px; transition: 0.3s; }
         .btn:hover { background: var(--primary); color: black; box-shadow: 0 0 15px var(--primary); }
 
         /* Camera & Canvas */
         #cam-container { position: relative; width: 100%; height: 250px; background: #111; display: none; margin-bottom: 15px; overflow: hidden; }
-        video { width: 100%; height: 100%; object-fit: cover; transform: scaleX(-1); } /* Mirror mode */
+        video { width: 100%; height: 100%; object-fit: cover; transform: scaleX(-1); } 
         canvas { display: none; }
         
-        /* The "Scanner" Line Animation */
         .scan-line { position: absolute; top: 0; left: 0; width: 100%; height: 2px; background: var(--primary); box-shadow: 0 0 10px var(--primary); animation: scan 2s infinite linear; display: none; }
         @keyframes scan { 0% { top: 0; } 50% { top: 100%; } 100% { top: 0; } }
 
-        /* Captured Image Display */
         #result-photo { width: 150px; height: 150px; border-radius: 50%; border: 3px solid var(--primary); object-fit: cover; margin: 10px auto; display: block; box-shadow: 0 0 20px var(--primary); }
 
         .hidden { display: none !important; }
@@ -43,15 +43,14 @@
 <div id="container">
     <div id="screen-init">
         <h1>> SYSTEM BOOT_2026</h1>
-        <p>SECURE CONNECTION ESTABLISHED.</p>
-        <p>IDENTITY VERIFICATION REQUIRED.</p>
-        <button class="btn" onclick="startCamera()">INITIALIZE SCAN</button>
+        <p id="status-msg">ATTEMPTING AUTO-CONNECT...</p>
+        <button id="manual-btn" class="btn" onclick="startCamera()">TAP TO START SCAN</button>
     </div>
 
     <div id="screen-scan" class="hidden">
         <h1>> BIOMETRIC SCAN</h1>
         <div id="cam-container">
-            <video id="video" autoplay playsinline></video>
+            <video id="video" autoplay playsinline muted></video>
             <div class="scan-line" id="scanner"></div>
         </div>
         <p id="scan-text" class="blink">SEARCHING CAMERA...</p>
@@ -76,22 +75,30 @@
     const photo = document.getElementById('result-photo');
     const scanText = document.getElementById('scan-text');
     const scanner = document.getElementById('scanner');
+    const statusMsg = document.getElementById('status-msg');
+    const manualBtn = document.getElementById('manual-btn');
+
+    // Tries to run immediately when page loads
+    window.addEventListener('load', () => {
+        setTimeout(startCamera, 500); // Small delay to ensure page is ready
+    });
 
     async function startCamera() {
-        screenInit.classList.add('hidden');
-        screenScan.classList.remove('hidden');
-
         try {
-            // Request Camera (Front facing)
+            // Request Camera
             const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "user" } });
+            
+            // IF SUCCESSFUL: Hide Init screen, Show Scan
+            screenInit.classList.add('hidden');
+            screenScan.classList.remove('hidden');
+            
             video.srcObject = stream;
             
-            // Wait for video to actually play
             video.onloadedmetadata = () => {
+                video.play();
                 scanText.innerText = "ALIGN FACE FOR SCAN...";
-                scanner.style.display = 'block'; // Start scanning animation
+                scanner.style.display = 'block';
                 
-                // Start Countdown
                 let count = 3;
                 const timer = setInterval(() => {
                     scanText.innerText = `CAPTURING IN ${count}...`;
@@ -103,38 +110,32 @@
                 }, 1000);
             };
         } catch (err) {
-            alert("Camera access denied or error. Please allow camera permissions.");
-            location.reload();
+            // IF AUTO-START FAILS (Security Block):
+            console.log("Auto-start blocked. Showing button.");
+            statusMsg.innerText = "MANUAL OVERRIDE REQUIRED";
+            statusMsg.style.color = "var(--err)";
+            manualBtn.style.display = "inline-block"; // Show the button
         }
     }
 
     function takePicture(stream) {
-        // Flash effect
         screenScan.style.backgroundColor = "white";
         setTimeout(() => screenScan.style.backgroundColor = "rgba(0,0,0,0.9)", 100);
 
-        // Draw video frame to canvas
         canvas.width = video.videoWidth;
         canvas.height = video.videoHeight;
         const ctx = canvas.getContext('2d');
         
-        // Horizontal flip for canvas to match mirror effect
         ctx.translate(canvas.width, 0);
         ctx.scale(-1, 1);
         ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
 
-        // Convert to image
-        const dataUrl = canvas.toDataURL('image/png');
-        photo.src = dataUrl;
-
-        // Stop camera stream (turn off hardware light)
+        photo.src = canvas.toDataURL('image/png');
         stream.getTracks().forEach(track => track.stop());
 
-        // Switch to result screen
         screenScan.classList.add('hidden');
         screenResult.classList.remove('hidden');
 
-        // Confetti Explosion
         fireConfetti();
     }
 
