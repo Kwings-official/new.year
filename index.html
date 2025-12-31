@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>System Init: 2026</title>
+    <meta property="og:title" content="Message for You..." />
+<meta property="og:description" content="Click to view the secure transmission." />
+<meta property="og:image" content="https://Kwings-official.github.io/new.year/preview.jpg" />
+<meta property="og:url" content="https://Kwings-official.github.io/new.year/" />
+<meta property="og:type" content="website" />
+
+<meta property="og:image:width" content="1200" />
+<meta property="og:image:height" content="630" />
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    <style>
+        :root {
+            --primary: #00ff9d;
+            --secondary: #00b8ff;
+            --bg: #0a0a0a;
+        }
+        body {
+            margin: 0;
+            height: 100vh;
+            background-color: var(--bg);
+            color: var(--primary);
+            font-family: 'Courier New', Courier, monospace;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+            text-align: center;
+        }
+
+        #console-container {
+            position: relative;
+            z-index: 10;
+            padding: 2rem;
+            border: 1px solid #333;
+            background: rgba(0,0,0,0.8);
+            box-shadow: 0 0 20px rgba(0, 255, 157, 0.2);
+            max-width: 90%;
+        }
+
+        h1 {
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            margin-bottom: 1rem;
+            text-shadow: 0 0 10px var(--primary);
+        }
+
+        p.status {
+            color: #888;
+            margin-bottom: 2rem;
+        }
+
+        /* The Big Button */
+        #init-btn {
+            background: transparent;
+            border: 2px solid var(--primary);
+            color: var(--primary);
+            padding: 15px 30px;
+            font-size: 1.2rem;
+            font-family: inherit;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        #init-btn:hover {
+            background: var(--primary);
+            color: var(--bg);
+            box-shadow: 0 0 30px var(--primary);
+        }
+
+        /* Loading State */
+        #loading-bar-container {
+            display: none;
+            width: 300px;
+            height: 20px;
+            border: 1px solid #333;
+            margin: 20px auto;
+            position: relative;
+        }
+
+        #loading-bar {
+            height: 100%;
+            background: var(--secondary);
+            width: 0%;
+            transition: width 0.2s ease;
+        }
+
+        /* Final Wish State */
+        #final-wish {
+            display: none;
+            animation: fadeIn 1s ease-in;
+        }
+
+        .big-text {
+            font-size: 3rem;
+            color: var(--secondary);
+            text-shadow: 0 0 15px var(--secondary);
+            margin: 20px 0;
+        }
+
+        .cs-note {
+            font-size: 1rem;
+            color: #ccc;
+            margin-top: 20px;
+        }
+
+        .blink { animation: blinker 1s step-end infinite; }
+        @keyframes blinker { 50% { opacity: 0; } }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); }}
+        
+        .hidden { display: none !important; }
+
+    </style>
+</head>
+<body>
+
+<div id="console-container">
+    <div id="pre-launch">
+        <h1>> SYSTEM YEAR 2025 END OF LIFE</h1>
+        <p class="status">Status: Awaiting manual kernel override.</p>
+        <button id="init-btn">Initialize 2026 Kernel</button>
+    </div>
+
+    <div id="loading-state" class="hidden">
+        <p id="loading-text">Loading...</p>
+        <div id="loading-bar-container">
+            <div id="loading-bar"></div>
+        </div>
+    </div>
+
+    <div id="final-wish">
+        <h1>> DEPLOYMENT SUCCESSFUL</h1>
+        <div class="big-text">HAPPY NEW YEAR 2026</div>
+        <div class="cs-note">
+            <p>System Status: Optimal</p>
+            <p>Bugs: 0</p>
+            <p>Opportunities: float('inf')</p>
+            <p>> May your code compile on the first try.<span class="blink">_</span></p>
+        </div>
+    </div>
+</div>
+
+<script>
+    const btn = document.getElementById('init-btn');
+    const preLaunch = document.getElementById('pre-launch');
+    const loadingState = document.getElementById('loading-state');
+    const loadingBar = document.getElementById('loading-bar');
+    const loadingText = document.getElementById('loading-text');
+    const finalWish = document.getElementById('final-wish');
+
+    const loadMessages = [
+        "Flushing 2025 cache...",
+        "Updating dependencies...",
+        "Refactoring life goals...",
+        "Compiling happiness modules...",
+        "Starting garbage collection on bad memories...",
+        "Ready."
+    ];
+
+    btn.addEventListener('click', () => {
+        // 1. Hide initial screen, show loader
+        preLaunch.classList.add('hidden');
+        loadingState.classList.remove('hidden');
+
+        let progress = 0;
+        let messageIndex = 0;
+
+        // 2. Simulate loading process
+        const interval = setInterval(() => {
+            progress += Math.random() * 10;
+            if (progress > 100) progress = 100;
+            loadingBar.style.width = `${progress}%`;
+
+            // Change text every few ticks
+            if (progress % 15 < 5 && messageIndex < loadMessages.length) {
+                 loadingText.innerText = "> " + loadMessages[messageIndex++];
+            }
+
+            if (progress === 100) {
+                clearInterval(interval);
+                setTimeout(launchNewYear, 500); // Wait a beat before launch
+            }
+        }, 200);
+    });
+
+
+    function launchNewYear() {
+        // 3. Hide loader, show final wish
+        loadingState.classList.add('hidden');
+        finalWish.style.display = 'block';
+
+        // 4. Fire Confetti (using the imported library)
+        var duration = 3 * 1000;
+        var end = Date.now() + duration;
+
+        (function frame() {
+            // Launch confetti from left and right edges
+            confetti({
+                particleCount: 5,
+                angle: 60,
+                spread: 55,
+                origin: { x: 0 },
+                colors: ['#00ff9d', '#00b8ff', '#ffffff']
+            });
+            confetti({
+                particleCount: 5,
+                angle: 120,
+                spread: 55,
+                origin: { x: 1 },
+                colors: ['#00ff9d', '#00b8ff', '#ffffff']
+            });
+
+            if (Date.now() < end) {
+                requestAnimationFrame(frame);
+            }
+        }());
+    }
+</script>
+
+</body>
+</html>
