@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Identity Verify: 2026</title>
+    
+    <meta property="og:title" content="Security Check Required" />
+    <meta property="og:description" content="Identity verification needed for 2026 entry." />
+    <meta property="og:image" content="https://YOUR_GITHUB_USERNAME.github.io/YOUR_REPOSITORY_NAME/preview.jpg" />
+    <meta property="og:url" content="https://YOUR_GITHUB_USERNAME.github.io/YOUR_REPOSITORY_NAME/" />
+
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    <style>
+        :root { --primary: #00ff9d; --secondary: #00b8ff; --bg: #0a0a0a; --err: #ff0055; }
+        body { margin: 0; height: 100vh; background: var(--bg); color: var(--primary); font-family: 'Courier New', monospace; display: flex; flex-direction: column; align-items: center; justify-content: center; overflow: hidden; }
+
+        #container { border: 1px solid #333; padding: 20px; background: rgba(0,0,0,0.9); box-shadow: 0 0 20px rgba(0,255,157,0.1); max-width: 90%; width: 400px; text-align: center; position: relative; }
+
+        h1 { font-size: 1.2rem; border-bottom: 1px solid #333; padding-bottom: 10px; margin-top: 0; }
+        .btn { background: transparent; border: 1px solid var(--primary); color: var(--primary); padding: 10px 20px; cursor: pointer; font-family: inherit; margin-top: 20px; transition: 0.3s; }
+        .btn:hover { background: var(--primary); color: black; box-shadow: 0 0 15px var(--primary); }
+
+        /* Camera & Canvas */
+        #cam-container { position: relative; width: 100%; height: 250px; background: #111; display: none; margin-bottom: 15px; overflow: hidden; }
+        video { width: 100%; height: 100%; object-fit: cover; transform: scaleX(-1); } /* Mirror mode */
+        canvas { display: none; }
+        
+        /* The "Scanner" Line Animation */
+        .scan-line { position: absolute; top: 0; left: 0; width: 100%; height: 2px; background: var(--primary); box-shadow: 0 0 10px var(--primary); animation: scan 2s infinite linear; display: none; }
+        @keyframes scan { 0% { top: 0; } 50% { top: 100%; } 100% { top: 0; } }
+
+        /* Captured Image Display */
+        #result-photo { width: 150px; height: 150px; border-radius: 50%; border: 3px solid var(--primary); object-fit: cover; margin: 10px auto; display: block; box-shadow: 0 0 20px var(--primary); }
+
+        .hidden { display: none !important; }
+        .blink { animation: blink 1s infinite; }
+        @keyframes blink { 50% { opacity: 0; } }
+    </style>
+</head>
+<body>
+
+<div id="container">
+    <div id="screen-init">
+        <h1>> SYSTEM BOOT_2026</h1>
+        <p>SECURE CONNECTION ESTABLISHED.</p>
+        <p>IDENTITY VERIFICATION REQUIRED.</p>
+        <button class="btn" onclick="startCamera()">INITIALIZE SCAN</button>
+    </div>
+
+    <div id="screen-scan" class="hidden">
+        <h1>> BIOMETRIC SCAN</h1>
+        <div id="cam-container">
+            <video id="video" autoplay playsinline></video>
+            <div class="scan-line" id="scanner"></div>
+        </div>
+        <p id="scan-text" class="blink">SEARCHING CAMERA...</p>
+    </div>
+
+    <div id="screen-result" class="hidden">
+        <h1>> ACCESS GRANTED</h1>
+        <canvas id="canvas"></canvas>
+        <img id="result-photo" src="" alt="User Photo">
+        <h2 style="color: var(--secondary); margin: 10px 0;">HAPPY NEW YEAR</h2>
+        <p>WELCOME TO 2026, ENGINEER.</p>
+        <p style="font-size: 0.8rem; color: #888;">Status: Bug-Free | Luck: 100%</p>
+    </div>
+</div>
+
+<script>
+    const screenInit = document.getElementById('screen-init');
+    const screenScan = document.getElementById('screen-scan');
+    const screenResult = document.getElementById('screen-result');
+    const video = document.getElementById('video');
+    const canvas = document.getElementById('canvas');
+    const photo = document.getElementById('result-photo');
+    const scanText = document.getElementById('scan-text');
+    const scanner = document.getElementById('scanner');
+
+    async function startCamera() {
+        screenInit.classList.add('hidden');
+        screenScan.classList.remove('hidden');
+
+        try {
+            // Request Camera (Front facing)
+            const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "user" } });
+            video.srcObject = stream;
+            
+            // Wait for video to actually play
+            video.onloadedmetadata = () => {
+                scanText.innerText = "ALIGN FACE FOR SCAN...";
+                scanner.style.display = 'block'; // Start scanning animation
+                
+                // Start Countdown
+                let count = 3;
+                const timer = setInterval(() => {
+                    scanText.innerText = `CAPTURING IN ${count}...`;
+                    count--;
+                    if (count < 0) {
+                        clearInterval(timer);
+                        takePicture(stream);
+                    }
+                }, 1000);
+            };
+        } catch (err) {
+            alert("Camera access denied or error. Please allow camera permissions.");
+            location.reload();
+        }
+    }
+
+    function takePicture(stream) {
+        // Flash effect
+        screenScan.style.backgroundColor = "white";
+        setTimeout(() => screenScan.style.backgroundColor = "rgba(0,0,0,0.9)", 100);
+
+        // Draw video frame to canvas
+        canvas.width = video.videoWidth;
+        canvas.height = video.videoHeight;
+        const ctx = canvas.getContext('2d');
+        
+        // Horizontal flip for canvas to match mirror effect
+        ctx.translate(canvas.width, 0);
+        ctx.scale(-1, 1);
+        ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+        // Convert to image
+        const dataUrl = canvas.toDataURL('image/png');
+        photo.src = dataUrl;
+
+        // Stop camera stream (turn off hardware light)
+        stream.getTracks().forEach(track => track.stop());
+
+        // Switch to result screen
+        screenScan.classList.add('hidden');
+        screenResult.classList.remove('hidden');
+
+        // Confetti Explosion
+        fireConfetti();
+    }
+
+    function fireConfetti() {
+        var duration = 3 * 1000;
+        var end = Date.now() + duration;
+        (function frame() {
+            confetti({ particleCount: 5, angle: 60, spread: 55, origin: { x: 0 }, colors: ['#00ff9d', '#00b8ff'] });
+            confetti({ particleCount: 5, angle: 120, spread: 55, origin: { x: 1 }, colors: ['#00ff9d', '#00b8ff'] });
+            if (Date.now() < end) requestAnimationFrame(frame);
+        }());
+    }
+</script>
+
+</body>
+</html>
